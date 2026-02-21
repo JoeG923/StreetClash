@@ -107,7 +107,7 @@ window.GAME_CONFIG = {
 };
 ```
 
-## Teen-Friendly Code Tour
+## Code Tour
 
 If you are new to coding, start here:
 

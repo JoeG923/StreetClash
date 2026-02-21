@@ -1,0 +1,139 @@
+:root {
+  --sky-top: #8ec8ff;
+  --sky-bottom: #f5d77b;
+  --panel: rgba(12, 18, 31, 0.84);
+  --panel-edge: rgba(255, 255, 255, 0.2);
+  --text: #f7f7f7;
+  --accent: #ffcf33;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle at 20% 0%, #d3ecff 0%, var(--sky-top) 36%, var(--sky-bottom) 100%);
+}
+
+body {
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.app-shell {
+  width: min(100%, 1040px);
+  display: grid;
+  gap: 0.8rem;
+}
+
+.title {
+  margin: 0;
+  text-align: center;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #112947;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.35);
+}
+
+.arena-wrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid rgba(17, 41, 71, 0.45);
+  box-shadow: 0 24px 40px rgba(8, 22, 48, 0.28);
+  background: linear-gradient(180deg, #9ed2f6, #f2bf6d);
+}
+
+#game-canvas {
+  display: block;
+  width: min(96vw, 960px);
+  height: auto;
+  image-rendering: auto;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 0.35rem;
+  text-align: center;
+  padding: 1.2rem;
+  background: linear-gradient(160deg, var(--panel), rgba(11, 24, 52, 0.92));
+  border: 1px solid var(--panel-edge);
+}
+
+.overlay[hidden] {
+  display: none;
+}
+
+.overlay h2 {
+  margin: 0 0 0.25rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.overlay p {
+  margin: 0.1rem 0;
+}
+
+kbd {
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.13);
+  padding: 0.1rem 0.38rem;
+  font-weight: 700;
+}
+
+#start-btn {
+  margin: 0.8rem auto 0;
+  border: 1px solid #654701;
+  border-radius: 999px;
+  padding: 0.55rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 700;
+  background: linear-gradient(180deg, #ffd766, #ffb535);
+  color: #382100;
+  cursor: pointer;
+  transition: transform 140ms ease, filter 140ms ease;
+}
+
+#start-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+#start-btn:active {
+  transform: translateY(1px);
+}
+
+.footer-note {
+  margin: 0;
+  text-align: center;
+  color: #143155;
+  font-size: 0.92rem;
+}
+
+@media (max-width: 700px) {
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .overlay {
+    font-size: 0.92rem;
+  }
+
+  .footer-note {
+    font-size: 0.82rem;
+  }
+}

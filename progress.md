@@ -1,0 +1,103 @@
+Original prompt: $develop-web-game Create a very simplified street fighter 2 type web game, where 2 players can move, punch, and kick, and where each player has a visible life bar, and with an animation when one player wins celebrating. Utilize the gemini api key in the AlbumCreator directory to generate the needed artwork. Use economical image generation settings - this is just an example.
+
+- Initialized project from empty repo.
+- Plan: create canvas-based 2-player fighting demo, generate lightweight art via Gemini API, and validate controls/state via Playwright loop.
+
+- Added game scaffold: `index.html`, `style.css`, `game.js` with 2-player movement/punch/kick, life bars, KO celebration particles, fullscreen toggle, and deterministic hooks (`render_game_to_text`, `advanceTime`).
+- Added Gemini asset generator at `tools/generate_artwork.mjs` and test action payloads under `test-actions/`.
+- Added npm scripts `serve` and `generate-art`, plus `.gitignore`.
+- Generated art with Gemini using `npm run generate-art` and key from `../AlbumCreator/codex_album/.env`.
+- Updated generator to current Gemini API payload shape (`generationConfig.responseModalities` + image models) and valid aspect ratios.
+- Ran Playwright client scenarios:
+  - `movement-and-combat`: confirmed movement + punches + kicks for both players, both life bars reduced to 79.
+  - `win-sequence`: confirmed KO state (`winnerId: 1`, `particles > 0`) and visible celebration overlay.
+  - `start-keyboard`: confirmed Enter starts fight from menu and movement works.
+- Visual fix: added runtime alpha-key cleanup for generated sprites/banner to remove checkerboard backgrounds from Gemini outputs.
+- TODOs / suggestions for next agent:
+  - Add a manual or custom Playwright check for `F` fullscreen toggle (current shared action map does not expose `KeyF`).
+  - Optionally regenerate assets with native transparent backgrounds to remove the need for runtime alpha keying.
+- Added configurable control mapping via `window.GAME_CONFIG` in `index.html`.
+  - `keyBindings.p1/p2` control keyboard mapping per player.
+  - `gamepadAssignments.p1/p2` select controller by connected slot (0=first connected, 1=second, etc.).
+- Updated `game.js` to resolve/sanitize config, merge keyboard + gamepad input, and expose mapping details in `render_game_to_text` output.
+- Re-ran Playwright scenarios after config changes:
+  - movement/combat still passes
+  - win sequence still reaches KO + celebration
+  - keyboard Enter start flow still passes
+- Enhanced combat/gameplay pass per user feedback:
+  - Added jump physics (with airborne `z`/`vz`) and `jump + kick => jumpKick` attack state.
+  - Added new round key (`KeyR`) so Enter kicks no longer accidentally skip KO celebration.
+  - Fixed player 2 sprite orientation using per-sprite facing metadata.
+  - Reworked attack visuals from simple lines to animated motion poses/effects and added raised-fist victory gesture animation.
+  - Added configurable `newRoundKey` and `jump` bindings in `window.GAME_CONFIG`.
+- Added/updated Playwright action coverage: `test-actions/jump-and-jumpkick.json`.
+- Re-ran Playwright scenarios and visually inspected screenshots/state:
+  - `movement-and-combat` pass (combat still functional)
+  - `jump-and-jumpkick` pass (`z > 0`, `attack.kind = jumpKick`, damage lands)
+  - `win-sequence` pass (`mode = ko`, winner celebration visible, restart prompt uses `R`)
+- Major animation overhaul using generated full-body frame sprites:
+  - Added `tools/generate_fighter_frames.mjs` and npm script `generate-fighter-frames`.
+  - Generated 28 fighter frames under `assets/anim/` (idle/walk/punch/kick/jump/jumpkick/victory/hurt for both fighters).
+  - Replaced line/limb overlay animation system with pose-based frame selection in `game.js`.
+  - Added pose state export (`players[].pose`) in `render_game_to_text` for deterministic validation.
+  - Upgraded alpha-keying to edge-flood background removal so generated sprite backgrounds are stripped.
+- Validation rerun (Playwright + screenshot review):
+  - punch pose (`output/web-game/punch/shot-0.png`)
+  - kick pose (`output/web-game/kick/shot-0.png`)
+  - jump pose (`output/web-game/jump-only/shot-0.png`)
+  - jump kick (`output/web-game/jumpkick/shot-0.png`)
+  - winner celebration gesture (`output/web-game/win/shot-0.png`)
+  - movement/combat regression (`output/web-game/movement/shot-0.png`)
+- Final validation rerun (post-asset/pose integration) on Feb 15, 2026 session:
+  - Ran: punch/kick/jump/jumpkick/win/movement via `$WEB_GAME_CLIENT` against `http://127.0.0.1:5173`.
+  - Verified `state-0.json` pose outputs: `punch*`, `kick*`, `jump_up/down`, `victory1`, `hurt` surfaced correctly by scenario.
+  - Opened and inspected screenshots:
+    - `output/web-game/punch/shot-0.png`
+    - `output/web-game/kick/shot-0.png`
+    - `output/web-game/jump-only/shot-0.png`
+    - `output/web-game/jumpkick/shot-0.png`
+    - `output/web-game/win/shot-0.png`
+    - `output/web-game/movement/shot-0.png`
+  - Result: no line-segment attack/jump/celebration placeholders remained, no large opaque sprite boxes remained, P2 facing remained toward opponent.
+- Follow-up polish (Feb 16, 2026 continuation):
+  - Fixed default P1 keyboard movement from `A/B` to `A/D` in both runtime defaults and UI instructions.
+  - Kept backward compatibility for existing test automation by adding keyboard alias support (`KeyB` also maps to P1 move-right).
+  - Added action-key alias handling in `game.js` so alternate bindings participate in hold/press detection and keydown preventDefault handling.
+- Regression/visual validation rerun on `http://127.0.0.1:5174`:
+  - `movement-and-combat` -> `output/web-game/continue2-move/shot-0.png`, `state-0.json`
+  - `jump-and-jumpkick` -> `output/web-game/continue2-jumpkick/shot-0.png`, `state-0.json`
+  - `win-sequence` -> `output/web-game/continue2-win/shot-0.png`, `state-0.json`
+  - Targeted P1 punch pose check -> `output/web-game/continue2-punch/shot-0.png`
+  - Targeted P2 slash-punch pose check (direct Playwright probe) -> `output/web-game/continue2-p2-punch-shot2.png`, `continue2-p2-punch-state2.json`
+- Result: punch direction is toward opponent for both players; KO celebration still works; controls export now reports `KeyD` for P1 right.
+- Size consistency fix (Feb 16, 2026):
+  - Root cause: P2 generated frames had inconsistent apparent subject size/padding (notably idle), so right fighter rendered smaller.
+  - Added pose-aware runtime normalization for P2 in `game.js`:
+    - `visibleBoundsCache` + `getVisibleBounds(...)` to measure non-transparent sprite content.
+    - `poseScaleCache` per sprite set and `getPoseRenderScale(player, pose)` to match P2 pose height to P1 pose height.
+    - `drawFighter` now applies `poseRenderScale` before drawing.
+- Validation artifacts for size fix:
+  - Idle: `output/web-game/sizefix-idle/shot-0.png`
+  - P1 punch regression: `output/web-game/sizefix-p1-punch/shot-0.png`
+  - P2 punch orientation+size: `output/web-game/sizefix-p2-punch.png`
+  - Jump/jumpkick regression: `output/web-game/sizefix-jumpkick/shot-0.png`
+  - KO/win regression: `output/web-game/sizefix-win/shot-0.png`
+- Fullscreen + combat/input update (Feb 16, 2026 follow-up):
+  - Fullscreen scaling fix in `resizeCanvasForViewport()`:
+    - Detects `document.fullscreenElement` and sizes canvas against fullscreen element bounds without the 960px cap.
+    - Keeps aspect-ratio fit and old cap behavior only when not in fullscreen.
+  - Player 1 default controls moved to left-hand-only keys:
+    - Move: A/D, Jump: W, Punch: C, Kick: V.
+    - Updated in both runtime defaults (`game.js`) and UI/config (`index.html`).
+  - Replaced coarse distance-based hit detection with tighter rectangle overlap hitboxes:
+    - Added attack hitbox profiles (`ATTACK_HITBOXES`) and defender hurtbox profiles (`HURTBOX_PROFILES`).
+    - Added helpers: attack box construction, hurtbox selection, rect overlap/intersection center.
+    - Collision now requires attack-box vs hurtbox overlap; spark spawns at overlap center.
+- Validation artifacts:
+  - Fullscreen metrics: `output/web-game/fix-fullscreen/metrics.json`
+    - before canvas: 960x540
+    - fullscreen canvas: 1116x628 (viewport 1120x760)
+  - Fullscreen snapshots: `output/web-game/fix-fullscreen/shot-0.png`, `shot-1.png`
+  - Hitbox tuning snapshots/states:
+    - close-range hit: `output/web-game/fix-hitboxes/shot-land3.png`, `state-land3.json` (P2 life 92)
+    - increased-distance whiff: `output/web-game/fix-hitboxes/shot-whiff2.png`, `state-whiff2.json` (P2 stays 92)

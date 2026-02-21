@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mini Street Clash</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <h1 class="title">Mini Street Clash</h1>
+      <div class="arena-wrap" id="arena-wrap">
+        <canvas id="game-canvas" width="960" height="540" aria-label="Mini Street Clash game area"></canvas>
+        <section id="start-overlay" class="overlay" aria-live="polite">
+          <h2>Fight Controls</h2>
+          <p><strong>P1:</strong> <kbd>A</kbd>/<kbd>D</kbd> move, <kbd>W</kbd> jump, <kbd>C</kbd> punch, <kbd>V</kbd> kick</p>
+          <p><strong>P2:</strong> <kbd>Left</kbd>/<kbd>Right</kbd> move, <kbd>Up</kbd> jump, <kbd>/</kbd> punch, <kbd>Down</kbd> kick</p>
+          <p><strong>Gamepads:</strong> D-pad/Left Stick move, <kbd>Y</kbd>/<kbd>△</kbd> jump, <kbd>A</kbd>/<kbd>X</kbd> punch, <kbd>B</kbd>/<kbd>O</kbd> kick, <kbd>Start</kbd> begin/restart.</p>
+          <p>Edit <code>window.GAME_CONFIG</code> in this file to remap keys or swap controller slots.</p>
+          <p>Press <kbd>R</kbd> to start or restart a round.</p>
+          <p>Press <kbd>F</kbd> for fullscreen.</p>
+          <button id="start-btn" type="button">Start Fight</button>
+        </section>
+      </div>
+      <p class="footer-note">Jump then kick to trigger a jump kick. First to zero life loses.</p>
+    </main>
+    <script>
+      // Beginner-friendly config:
+      // Change these values to remap keys or assign gamepad slots.
+      window.GAME_CONFIG = {
+        keyBindings: {
+          p1: { left: "KeyA", right: "KeyD", jump: "KeyW", punch: "KeyC", kick: "KeyV" },
+          p2: { left: "ArrowLeft", right: "ArrowRight", jump: "ArrowUp", punch: "Slash", kick: "ArrowDown" }
+        },
+        gamepadAssignments: {
+          p1: 0,
+          p2: 1
+        },
+        newRoundKey: "KeyR"
+      };
+    </script>
+    <script type="module" src="./game.js"></script>
+  </body>
+</html>
